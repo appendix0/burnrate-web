@@ -221,7 +221,8 @@ export default function ProxySetupPage() {
             <CopyButton text={proxyUrl} />
           </div>
           <p className="text-xs text-muted-foreground mt-1.5">
-            This URL is specific to your running BurnRate instance.
+            Paste this into your SDK config as <code className="font-mono bg-muted px-1 rounded">base_url</code> — do not open it in a browser.
+            The SDK appends the actual endpoint path (e.g. <code className="font-mono bg-muted px-1 rounded">/v1/messages</code>) automatically.
           </p>
         </div>
 
