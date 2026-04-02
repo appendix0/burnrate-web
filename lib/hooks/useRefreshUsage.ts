@@ -9,6 +9,7 @@ import { fetchAnthropicUsage } from "@/lib/sources/anthropicSource";
 import { fetchOpenAIUsage } from "@/lib/sources/openaiSource";
 import { fetchAWSUsage } from "@/lib/sources/awsSource";
 import { fetchOracleUsage } from "@/lib/sources/oracleSource";
+import { fetchGeminiUsage } from "@/lib/sources/geminiSource";
 import { UsageSummary } from "@/lib/models/usageSummary";
 
 // Dispatches to the correct source based on credential type.
@@ -20,7 +21,7 @@ async function fetchUsage(credential: Credential): Promise<UsageSummary> {
     case ServiceType.OpenAI:
       return fetchOpenAIUsage(credential);
     case ServiceType.Gemini:
-      throw new Error("Gemini integration coming in Phase 7");
+      return fetchGeminiUsage(credential);
     case ServiceType.AWS:
       return fetchAWSUsage(credential);
     case ServiceType.Oracle:

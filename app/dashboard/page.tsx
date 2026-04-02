@@ -53,6 +53,12 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
+              href="/settings"
+              className="text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-accent transition-colors"
+            >
+              Settings
+            </Link>
+            <Link
               href="/onboarding"
               className="text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-accent transition-colors"
             >
