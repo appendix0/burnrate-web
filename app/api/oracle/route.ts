@@ -34,10 +34,16 @@ export async function POST(request: NextRequest) {
 
   const url = `https://usageapi.${credential.region}.oci.oraclecloud.com/20200107/usage`;
 
+  // OCI requires both timestamps to be exactly midnight (00:00:00.000Z).
+  // Use the next day as the exclusive end boundary.
+  const endDateExclusive = new Date(`${endDate}T00:00:00.000Z`);
+  endDateExclusive.setUTCDate(endDateExclusive.getUTCDate() + 1);
+  const endDateStr = endDateExclusive.toISOString().replace(/\.\d{3}Z$/, ".000Z");
+
   const ociBody = JSON.stringify({
     tenantId: credential.tenancyOcid,
     timeUsageStarted: `${startDate}T00:00:00.000Z`,
-    timeUsageEnded: `${endDate}T23:59:59.999Z`,
+    timeUsageEnded: endDateStr,
     granularity: "DAILY",
     queryType: "COST",
   });

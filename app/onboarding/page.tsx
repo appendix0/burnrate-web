@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ServiceType, SERVICE_METADATA, ALL_SERVICES } from "@/lib/constants/services";
+import { ServiceIcon } from "@/components/ServiceIcon";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -130,10 +131,10 @@ export default function OnboardingPage() {
                 }`}
               >
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: meta.color + "22", color: meta.color }}
                 >
-                  {meta.label[0]}
+                  <ServiceIcon service={service} className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium">{meta.label}</div>

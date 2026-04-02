@@ -4,6 +4,18 @@ import { useRouter } from "next/navigation";
 import { useCredentialStore } from "@/lib/store/credentialStore";
 import { useUsageStore } from "@/lib/store/usageStore";
 import { ALL_SERVICES, SERVICE_METADATA, ServiceType } from "@/lib/constants/services";
+import { ServiceIcon } from "@/components/ServiceIcon";
+
+const SERVICE_GROUPS = [
+  {
+    label: "AI Credits",
+    services: [ServiceType.Anthropic, ServiceType.OpenAI, ServiceType.Gemini],
+  },
+  {
+    label: "Cloud Services",
+    services: [ServiceType.AWS, ServiceType.Oracle],
+  },
+];
 
 export default function CredentialsSettingsPage() {
   const router = useRouter();
@@ -31,66 +43,72 @@ export default function CredentialsSettingsPage() {
 
         <h1 className="text-xl font-semibold mb-6">Credentials</h1>
 
-        <div className="flex flex-col gap-2">
-          {ALL_SERVICES.map((service) => {
-            const meta = SERVICE_METADATA[service];
-            const isConfigured = configuredServices.includes(service);
+        <div className="flex flex-col gap-8">
+          {SERVICE_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                {group.label}
+              </p>
+              <div className="flex flex-col gap-2">
+                {group.services.map((service) => {
+                  const meta = SERVICE_METADATA[service];
+                  const isConfigured = configuredServices.includes(service);
 
-            return (
-              <div
-                key={service}
-                className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card"
-              >
-                {/* Avatar */}
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{
-                    backgroundColor: meta.color + "22",
-                    color: meta.color,
-                  }}
-                >
-                  {meta.label[0]}
-                </div>
-
-                {/* Name + status */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{meta.label}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {isConfigured ? (
-                      <span className="text-safe">✓ Connected</span>
-                    ) : (
-                      "Not configured"
-                    )}
-                  </p>
-                </div>
-
-                {/* Actions */}
-                {isConfigured ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => router.push(`/onboarding/${service}`)}
-                      className="text-xs border border-border rounded px-2.5 py-1 hover:bg-accent transition-colors"
+                  return (
+                    <div
+                      key={service}
+                      className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleRemove(service)}
-                      className="text-xs border border-danger/40 text-danger rounded px-2.5 py-1 hover:bg-danger/10 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => router.push(`/onboarding/${service}`)}
-                    className="text-xs border border-border rounded px-2.5 py-1 hover:bg-accent transition-colors"
-                  >
-                    Add
-                  </button>
-                )}
+                      {/* Icon */}
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: meta.color + "22", color: meta.color }}
+                      >
+                        <ServiceIcon service={service} className="w-5 h-5" />
+                      </div>
+
+                      {/* Name + status */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{meta.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {isConfigured ? (
+                            <span className="text-safe">✓ Connected</span>
+                          ) : (
+                            "Not configured"
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      {isConfigured ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/onboarding/${service}`)}
+                            className="text-xs border border-border rounded px-2.5 py-1 hover:bg-accent transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleRemove(service)}
+                            className="text-xs border border-danger/40 text-danger rounded px-2.5 py-1 hover:bg-danger/10 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => router.push(`/onboarding/${service}`)}
+                          className="text-xs border border-border rounded px-2.5 py-1 hover:bg-accent transition-colors"
+                        >
+                          Add
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         {/* Danger zone */}

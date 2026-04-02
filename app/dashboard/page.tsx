@@ -6,6 +6,7 @@ import { useCredentialStore } from "@/lib/store/credentialStore";
 import { useUsageStore, ServiceLoadState } from "@/lib/store/usageStore";
 import { useAlertStore } from "@/lib/store/alertStore";
 import { SERVICE_METADATA, ALL_SERVICES, ServiceType } from "@/lib/constants/services";
+import { ServiceIcon } from "@/components/ServiceIcon";
 import { useTotalSpend } from "@/lib/hooks/useUsage";
 import { useRefreshUsage } from "@/lib/hooks/useRefreshUsage";
 import { timeAgo } from "@/lib/utils/timeAgo";
@@ -148,10 +149,10 @@ function ServiceCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+            className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{ backgroundColor: meta.color + "22", color: meta.color }}
           >
-            {meta.label[0]}
+            <ServiceIcon service={service} className="w-4 h-4" />
           </div>
           <span className="text-sm font-medium">{meta.label}</span>
         </div>
