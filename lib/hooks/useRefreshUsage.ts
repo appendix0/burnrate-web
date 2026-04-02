@@ -8,6 +8,7 @@ import { useUsageStore } from "@/lib/store/usageStore";
 import { fetchAnthropicUsage } from "@/lib/sources/anthropicSource";
 import { fetchOpenAIUsage } from "@/lib/sources/openaiSource";
 import { fetchAWSUsage } from "@/lib/sources/awsSource";
+import { fetchOracleUsage } from "@/lib/sources/oracleSource";
 import { UsageSummary } from "@/lib/models/usageSummary";
 
 // Dispatches to the correct source based on credential type.
@@ -23,7 +24,7 @@ async function fetchUsage(credential: Credential): Promise<UsageSummary> {
     case ServiceType.AWS:
       return fetchAWSUsage(credential);
     case ServiceType.Oracle:
-      throw new Error("Oracle integration coming in Phase 6");
+      return fetchOracleUsage(credential);
   }
 }
 
