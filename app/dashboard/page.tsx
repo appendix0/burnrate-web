@@ -81,7 +81,6 @@ export default function DashboardPage() {
         {/* Empty state */}
         {configuredServices.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="text-4xl mb-4">📊</div>
             <h2 className="text-lg font-semibold mb-2">Nothing to track yet</h2>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
               Connect your first service to start monitoring LLM and cloud spend.

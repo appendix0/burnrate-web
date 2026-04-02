@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 const SETTINGS_SECTIONS = [
   {
     href: "/settings/credentials",
-    icon: "🔑",
+    icon: null,
     title: "Credentials",
     description: "Add, edit, or remove API keys for each service",
   },
   {
     href: "/settings/budgets",
-    icon: "💰",
+    icon: null,
     title: "Budget Alerts",
     description: "Set monthly spend thresholds and get notified",
   },
@@ -40,7 +40,6 @@ export default function SettingsPage() {
               href={section.href}
               className="flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:bg-accent transition-colors"
             >
-              <span className="text-2xl">{section.icon}</span>
               <div className="flex-1">
                 <p className="text-sm font-medium">{section.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">

@@ -61,10 +61,10 @@ export default function OnboardingPage() {
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-2">
             {[
-              "🔐 Encrypted locally",
-              "📊 Daily spend charts",
-              "🔔 Budget alerts",
-              "⚡ Live refresh",
+              "Encrypted locally",
+              "Daily spend charts",
+              "Budget alerts",
+              "Live refresh",
             ].map((f) => (
               <span
                 key={f}
