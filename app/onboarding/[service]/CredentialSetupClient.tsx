@@ -40,7 +40,12 @@ function buildCredential(
         region: values.region,
       };
     case ServiceType.GoogleCloud:
-      return { type: ServiceType.GoogleCloud };
+      return {
+        type: ServiceType.GoogleCloud,
+        serviceAccountJson: values.serviceAccountJson,
+        projectId: values.projectId,
+        datasetId: values.datasetId,
+      };
   }
 }
 

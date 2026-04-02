@@ -35,7 +35,9 @@ export type OCICredential = {
 
 export type GCPCredential = {
   type: ServiceType.GoogleCloud;
-  // Manual entry — GCP billing API requires BigQuery export setup
+  serviceAccountJson: string; // full JSON key file contents
+  projectId: string;          // GCP project containing the BigQuery dataset
+  datasetId: string;          // BigQuery dataset name for billing export
 };
 
 export type Credential =

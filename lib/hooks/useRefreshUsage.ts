@@ -9,10 +9,12 @@ import { useManualUsageStore, ManualUsageEntry } from "@/lib/store/manualUsageSt
 import { fetchAnthropicUsage } from "@/lib/sources/anthropicSource";
 import { fetchAWSUsage } from "@/lib/sources/awsSource";
 import { fetchOracleUsage } from "@/lib/sources/oracleSource";
+import { fetchGoogleCloudUsage } from "@/lib/sources/googleCloudSource";
+import { GCPCredential } from "@/lib/models/credential";
 import { UsageSummary } from "@/lib/models/usageSummary";
 
 // Services that always use manual entry (no billing API available)
-const ALWAYS_MANUAL = new Set<ServiceType>([ServiceType.OpenAI, ServiceType.Gemini, ServiceType.GoogleCloud]);
+const ALWAYS_MANUAL = new Set<ServiceType>([ServiceType.OpenAI, ServiceType.Gemini]);
 
 function isManualCredential(credential: Credential): boolean {
   if (ALWAYS_MANUAL.has(credential.type)) return true;
@@ -44,6 +46,8 @@ async function fetchApiUsage(credential: Credential): Promise<UsageSummary> {
       return fetchAWSUsage(credential);
     case ServiceType.Oracle:
       return fetchOracleUsage(credential);
+    case ServiceType.GoogleCloud:
+      return fetchGoogleCloudUsage(credential as GCPCredential);
     default:
       throw new Error(`No API source for ${credential.type}`);
   }

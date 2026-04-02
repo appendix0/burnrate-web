@@ -40,7 +40,31 @@ const FIELDS: Record<ServiceType, FieldConfig[]> = {
       hint: "Cost Explorer is global but requires a region",
     },
   ],
-  [ServiceType.GoogleCloud]: [],
+  [ServiceType.GoogleCloud]: [
+    {
+      key: "projectId",
+      label: "GCP Project ID",
+      placeholder: "my-project-123456",
+      required: true,
+      hint: "The project that contains your BigQuery billing export dataset",
+    },
+    {
+      key: "datasetId",
+      label: "BigQuery Dataset ID",
+      placeholder: "billing_export",
+      required: true,
+      hint: 'The dataset you configured in Billing → Billing Export → BigQuery export',
+    },
+    {
+      key: "serviceAccountJson",
+      label: "Service Account Key (JSON)",
+      placeholder: '{\n  "type": "service_account",\n  "project_id": "...",\n  ...\n}',
+      secret: true,
+      multiline: true,
+      required: true,
+      hint: "Service account needs roles/bigquery.dataViewer on the dataset",
+    },
+  ],
   [ServiceType.Oracle]: [
     {
       key: "tenancyOcid",
@@ -191,7 +215,7 @@ function AnthropicForm({
   );
 }
 
-const MANUAL_ENTRY_SERVICES = new Set([ServiceType.OpenAI, ServiceType.Gemini, ServiceType.GoogleCloud]);
+const MANUAL_ENTRY_SERVICES = new Set([ServiceType.OpenAI, ServiceType.Gemini]);
 
 const MANUAL_ENTRY_HINTS: Partial<Record<ServiceType, { body: string; dashboardLabel: string }>> = {
   [ServiceType.OpenAI]: {
@@ -201,10 +225,6 @@ const MANUAL_ENTRY_HINTS: Partial<Record<ServiceType, { body: string; dashboardL
   [ServiceType.Gemini]: {
     body: "Google does not expose billing data via API key.",
     dashboardLabel: "aistudio.google.com",
-  },
-  [ServiceType.GoogleCloud]: {
-    body: "Google Cloud billing data requires a BigQuery export setup and is not accessible via a simple API key.",
-    dashboardLabel: "console.cloud.google.com/billing",
   },
 };
 
