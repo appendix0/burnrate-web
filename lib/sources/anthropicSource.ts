@@ -32,25 +32,16 @@ async function fetchRange(
   startDate: string,
   endDate: string
 ): Promise<UsageRecord[]> {
-  const params = new URLSearchParams({
-    start_time: `${startDate}T00:00:00Z`,
-    end_time: `${endDate}T23:59:59Z`,
-    granularity: "day",
+  // Route Handler proxy — Anthropic blocks direct browser requests (CORS)
+  const res = await fetch("/api/anthropic", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiKey: credential.apiKey, startDate, endDate }),
   });
-
-  const res = await fetch(
-    `https://api.anthropic.com/v1/usage?${params}`,
-    {
-      headers: {
-        "x-api-key": credential.apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-    }
-  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const msg = body?.error?.message ?? `HTTP ${res.status}`;
+    const msg = body?.message ?? `HTTP ${res.status}`;
     throw new Error(msg);
   }
 

@@ -24,23 +24,16 @@ async function fetchRange(
   startDate: string,
   endDate: string
 ): Promise<{ records: UsageRecord[]; totalCostUsd: number }> {
-  const params = new URLSearchParams({
-    start_date: startDate,
-    end_date: endDate,
+  // Route Handler proxy — OpenAI billing endpoint blocks direct browser requests (CORS)
+  const res = await fetch("/api/openai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiKey: credential.apiKey, startDate, endDate }),
   });
-
-  const res = await fetch(
-    `https://api.openai.com/v1/dashboard/billing/usage?${params}`,
-    {
-      headers: {
-        Authorization: `Bearer ${credential.apiKey}`,
-      },
-    }
-  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const msg = body?.error?.message ?? `HTTP ${res.status}`;
+    const msg = body?.message ?? `HTTP ${res.status}`;
     throw new Error(msg);
   }
 
