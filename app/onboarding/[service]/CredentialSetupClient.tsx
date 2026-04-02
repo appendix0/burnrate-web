@@ -13,7 +13,11 @@ function buildCredential(
 ): Credential {
   switch (service) {
     case ServiceType.Anthropic:
-      return { type: ServiceType.Anthropic, apiKey: values.apiKey };
+      return {
+        type: ServiceType.Anthropic,
+        accountType: (values.accountType ?? "individual") as "individual" | "organization",
+        apiKey: values.apiKey || undefined,
+      };
     case ServiceType.OpenAI:
       return { type: ServiceType.OpenAI, apiKey: values.apiKey };
     case ServiceType.Gemini:

@@ -14,16 +14,7 @@ type FieldConfig = {
 };
 
 const FIELDS: Record<ServiceType, FieldConfig[]> = {
-  [ServiceType.Anthropic]: [
-    {
-      key: "apiKey",
-      label: "API Key",
-      placeholder: "sk-ant-api03-...",
-      secret: true,
-      required: true,
-      hint: "Found at console.anthropic.com → API Keys",
-    },
-  ],
+  [ServiceType.Anthropic]: [], // handled by AnthropicForm below
   [ServiceType.OpenAI]: [
     {
       key: "apiKey",
@@ -31,7 +22,7 @@ const FIELDS: Record<ServiceType, FieldConfig[]> = {
       placeholder: "sk-proj-...",
       secret: true,
       required: true,
-      hint: "Found at platform.openai.com → API Keys",
+      hint: "Found at platform.openai.com → API Keys — used to identify this service",
     },
   ],
   [ServiceType.Gemini]: [
@@ -48,7 +39,7 @@ const FIELDS: Record<ServiceType, FieldConfig[]> = {
       label: "Project ID",
       placeholder: "my-project-123",
       required: false,
-      hint: "Optional — needed for GCP billing data",
+      hint: "Optional — your Google Cloud project ID",
     },
   ],
   [ServiceType.AWS]: [
@@ -117,15 +108,129 @@ interface CredentialFormProps {
   isLoading?: boolean;
 }
 
+// ── Anthropic: account type selector ─────────────────────────────────────────
+
+function AnthropicForm({
+  onSubmit,
+  isLoading,
+}: {
+  onSubmit: (values: Record<string, string>) => void;
+  isLoading: boolean;
+}) {
+  const [accountType, setAccountType] = useState<"individual" | "organization" | null>(null);
+  const [apiKey, setApiKey] = useState("");
+
+  const canSubmit =
+    accountType === "individual" ||
+    (accountType === "organization" && apiKey.trim().length > 0);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit || !accountType) return;
+    onSubmit({ accountType, apiKey: apiKey.trim() });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {/* Account type selector */}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium">Account type</p>
+        <div className="grid grid-cols-2 gap-2">
+          {(
+            [
+              {
+                value: "individual" as const,
+                label: "Individual",
+                sub: "Personal / free-tier account",
+              },
+              {
+                value: "organization" as const,
+                label: "Organization",
+                sub: "Team or enterprise account",
+              },
+            ] as const
+          ).map(({ value, label, sub }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAccountType(value)}
+              className={`flex flex-col gap-0.5 p-3 rounded-lg border text-left transition-all ${
+                accountType === value
+                  ? "border-burn/60 bg-burn/10"
+                  : "border-border bg-card hover:bg-accent"
+              }`}
+            >
+              <span className="text-sm font-medium">{label}</span>
+              <span className="text-xs text-muted-foreground">{sub}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Individual — proxy explanation */}
+      {accountType === "individual" && (
+        <div className="rounded-lg border border-border bg-muted/30 p-4 flex flex-col gap-2">
+          <p className="text-sm font-medium">Tracked via proxy</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Individual Anthropic accounts don&apos;t have a billing API. BurnRate will
+            act as a proxy between your code and Anthropic — it reads token counts
+            from each response and tallies the cost automatically.
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            After saving, go to <strong>Settings → Proxy Setup</strong> for a
+            one-line code change to point your SDK at BurnRate.
+          </p>
+        </div>
+      )}
+
+      {/* Organization — Admin API key */}
+      {accountType === "organization" && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium">Admin API Key</label>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="sk-ant-admin01-..."
+            autoComplete="off"
+            spellCheck={false}
+            className="bg-card border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-burn/50 focus:border-burn/50 placeholder:text-muted-foreground/40 transition-colors"
+          />
+          <p className="text-xs text-muted-foreground">
+            Create an Admin key at console.anthropic.com → Settings → API Keys
+          </p>
+        </div>
+      )}
+
+      {accountType && (
+        <button
+          type="submit"
+          disabled={isLoading || !canSubmit}
+          className="mt-1 py-2.5 rounded-lg bg-burn text-burn-foreground font-medium text-sm transition-opacity disabled:opacity-40"
+        >
+          {isLoading ? "Saving…" : "Save & Continue"}
+        </button>
+      )}
+    </form>
+  );
+}
+
+// ── Generic form (OpenAI, Gemini, AWS, Oracle) ────────────────────────────────
+
 export function CredentialForm({
   service,
   onSubmit,
   isLoading = false,
 }: CredentialFormProps) {
+  // Hooks must always be called — FIELDS[Anthropic] is [] so values is {} there
   const fields = FIELDS[service];
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.key, ""]))
   );
+
+  if (service === ServiceType.Anthropic) {
+    return <AnthropicForm onSubmit={onSubmit} isLoading={isLoading} />;
+  }
 
   const isValid = fields
     .filter((f) => f.required)
@@ -144,9 +249,7 @@ export function CredentialForm({
           <label className="text-sm font-medium flex items-center gap-1.5">
             {field.label}
             {!field.required && (
-              <span className="text-muted-foreground font-normal text-xs">
-                optional
-              </span>
+              <span className="text-muted-foreground font-normal text-xs">optional</span>
             )}
           </label>
 

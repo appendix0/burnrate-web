@@ -2,7 +2,9 @@ import { ServiceType } from "@/lib/constants/services";
 
 export type AnthropicCredential = {
   type: ServiceType.Anthropic;
-  apiKey: string;
+  // "individual" uses the proxy to track usage; "organization" uses the Admin API directly.
+  accountType: "individual" | "organization";
+  apiKey?: string; // required for organization accounts only
 };
 
 export type OpenAICredential = {
