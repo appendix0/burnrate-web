@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useCredentialStore } from "@/lib/store/credentialStore";
 import { useUsageStore } from "@/lib/store/usageStore";
 import { SERVICE_METADATA, ALL_SERVICES } from "@/lib/constants/services";
 import { useTotalSpend } from "@/lib/hooks/useUsage";
+import { useRefreshUsage } from "@/lib/hooks/useRefreshUsage";
 
 function formatUsd(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -19,6 +21,20 @@ export default function DashboardPage() {
   const configuredServices = useCredentialStore((s) => s.configuredServices);
   const services = useUsageStore((s) => s.services);
   const totalSpend = useTotalSpend();
+  const { refreshAll } = useRefreshUsage();
+
+  // Auto-fetch once after store hydrates (configuredServices goes from [] to real list)
+  const hasFetched = useRef(false);
+  useEffect(() => {
+    if (configuredServices.length > 0 && !hasFetched.current) {
+      hasFetched.current = true;
+      refreshAll();
+    }
+  }, [configuredServices, refreshAll]);
+
+  const isAnyLoading = configuredServices.some(
+    (s) => services[s].status === "loading"
+  );
 
   return (
     <main className="min-h-screen p-6">
@@ -42,9 +58,15 @@ export default function DashboardPage() {
             >
               + Add service
             </Link>
-            <button className="text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-accent transition-colors">
-              Refresh all
-            </button>
+            {configuredServices.length > 0 && (
+              <button
+                onClick={refreshAll}
+                disabled={isAnyLoading}
+                className="text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-accent transition-colors disabled:opacity-40"
+              >
+                {isAnyLoading ? "Refreshing…" : "Refresh all"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -68,48 +90,65 @@ export default function DashboardPage() {
         {/* Service card grid */}
         {configuredServices.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ALL_SERVICES.filter((s) => configuredServices.includes(s)).map((service) => {
-              const meta = SERVICE_METADATA[service];
-              const state = services[service];
-              return (
-                <Link
-                  key={service}
-                  href={`/dashboard/${service}`}
-                  className="rounded-lg border border-border bg-card p-5 flex flex-col gap-3 hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{
-                          backgroundColor: meta.color + "22",
-                          color: meta.color,
-                        }}
-                      >
-                        {meta.label[0]}
+            {ALL_SERVICES.filter((s) => configuredServices.includes(s)).map(
+              (service) => {
+                const meta = SERVICE_METADATA[service];
+                const state = services[service];
+                return (
+                  <Link
+                    key={service}
+                    href={`/dashboard/${service}`}
+                    className="rounded-lg border border-border bg-card p-5 flex flex-col gap-3 hover:bg-accent/50 transition-colors group"
+                  >
+                    {/* Service name + status */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                          style={{
+                            backgroundColor: meta.color + "22",
+                            color: meta.color,
+                          }}
+                        >
+                          {meta.label[0]}
+                        </div>
+                        <span className="text-sm font-medium">{meta.label}</span>
                       </div>
-                      <span className="text-sm font-medium">{meta.label}</span>
+                      <StatusBadge status={state.status} />
                     </div>
-                    <StatusBadge state={state.status} />
-                  </div>
 
-                  <div className="text-2xl font-mono font-semibold">
-                    {state.status === "loaded"
-                      ? formatUsd(state.data.currentPeriodCostUsd)
-                      : state.status === "loading"
-                      ? "…"
-                      : "—"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {state.status === "loaded"
-                      ? `MTD · fetched ${new Date(state.data.fetchedAt).toLocaleTimeString()}`
-                      : state.status === "error"
-                      ? state.message
-                      : "MTD spend"}
-                  </div>
-                </Link>
-              );
-            })}
+                    {/* Spend amount */}
+                    <div className="text-2xl font-mono font-semibold">
+                      {state.status === "loaded"
+                        ? formatUsd(state.data.currentPeriodCostUsd)
+                        : state.status === "loading"
+                        ? <span className="text-muted-foreground text-lg animate-pulse">…</span>
+                        : <span className="text-muted-foreground">—</span>}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="text-xs text-muted-foreground">
+                      {state.status === "loaded" && (
+                        <>
+                          MTD ·{" "}
+                          {state.data.previousPeriodCostUsd > 0 && (
+                            <MoMDiff
+                              current={state.data.currentPeriodCostUsd}
+                              previous={state.data.previousPeriodCostUsd}
+                            />
+                          )}
+                        </>
+                      )}
+                      {state.status === "error" && (
+                        <span className="text-danger">{state.message}</span>
+                      )}
+                      {state.status === "loading" && "Fetching…"}
+                      {state.status === "unconfigured" && "MTD spend"}
+                    </div>
+                  </Link>
+                );
+              }
+            )}
           </div>
         )}
       </div>
@@ -117,16 +156,35 @@ export default function DashboardPage() {
   );
 }
 
-function StatusBadge({ state }: { state: string }) {
+function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     loaded: "bg-safe/20 text-safe",
-    loading: "bg-muted text-muted-foreground",
+    loading: "bg-muted text-muted-foreground animate-pulse",
     error: "bg-danger/20 text-danger",
     unconfigured: "bg-muted text-muted-foreground",
   };
   return (
-    <span className={`text-xs rounded px-2 py-0.5 ${styles[state] ?? styles.unconfigured}`}>
-      {state}
+    <span
+      className={`text-xs rounded px-2 py-0.5 ${styles[status] ?? styles.unconfigured}`}
+    >
+      {status}
+    </span>
+  );
+}
+
+function MoMDiff({
+  current,
+  previous,
+}: {
+  current: number;
+  previous: number;
+}) {
+  if (previous === 0) return null;
+  const pct = ((current - previous) / previous) * 100;
+  const isUp = pct > 0;
+  return (
+    <span className={isUp ? "text-danger" : "text-safe"}>
+      {isUp ? "▲" : "▼"} {Math.abs(pct).toFixed(0)}% vs last month
     </span>
   );
 }
