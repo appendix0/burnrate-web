@@ -8,12 +8,12 @@ import { ServiceIcon } from "@/components/ServiceIcon";
 
 const SERVICE_GROUPS = [
   {
-    label: "AI Credits",
-    services: [ServiceType.Anthropic, ServiceType.OpenAI, ServiceType.Gemini],
-  },
-  {
     label: "Cloud Services",
     services: [ServiceType.AWS, ServiceType.Oracle, ServiceType.GoogleCloud],
+  },
+  {
+    label: "AI Credits",
+    services: [ServiceType.Anthropic, ServiceType.OpenAI, ServiceType.Gemini],
   },
 ];
 

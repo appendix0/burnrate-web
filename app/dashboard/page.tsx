@@ -5,11 +5,22 @@ import Link from "next/link";
 import { useCredentialStore } from "@/lib/store/credentialStore";
 import { useUsageStore, ServiceLoadState } from "@/lib/store/usageStore";
 import { useAlertStore } from "@/lib/store/alertStore";
-import { SERVICE_METADATA, ALL_SERVICES, ServiceType } from "@/lib/constants/services";
+import { SERVICE_METADATA, ServiceType } from "@/lib/constants/services";
 import { ServiceIcon } from "@/components/ServiceIcon";
 import { useTotalSpend } from "@/lib/hooks/useUsage";
 import { useRefreshUsage } from "@/lib/hooks/useRefreshUsage";
 import { timeAgo } from "@/lib/utils/timeAgo";
+
+const DASHBOARD_GROUPS = [
+  {
+    label: "Cloud Services",
+    services: [ServiceType.AWS, ServiceType.Oracle, ServiceType.GoogleCloud],
+  },
+  {
+    label: "AI Credits",
+    services: [ServiceType.Anthropic, ServiceType.OpenAI, ServiceType.Gemini],
+  },
+];
 
 function formatUsd(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -95,29 +106,42 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Service card grid */}
+        {/* Service card groups */}
         {configuredServices.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ALL_SERVICES.filter((s) => configuredServices.includes(s)).map(
-              (service) => {
-                const state = services[service];
-                const alert = alerts.find((a) => a.serviceType === service);
-                const isOverBudget =
-                  alert?.isEnabled &&
-                  state.status === "loaded" &&
-                  state.data.currentPeriodCostUsd >= alert.thresholdUsd;
-
-                return (
-                  <ServiceCard
-                    key={service}
-                    service={service}
-                    state={state}
-                    isOverBudget={!!isOverBudget}
-                    alertThreshold={alert?.isEnabled ? alert.thresholdUsd : undefined}
-                  />
-                );
-              }
-            )}
+          <div className="flex flex-col gap-8">
+            {DASHBOARD_GROUPS.map((group) => {
+              const groupServices = group.services.filter((s) =>
+                configuredServices.includes(s)
+              );
+              if (groupServices.length === 0) return null;
+              return (
+                <div key={group.label}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                    {group.label}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {groupServices.map((service) => {
+                      const state = services[service];
+                      const alert = alerts.find((a) => a.serviceType === service);
+                      const isOverBudget =
+                        alert?.isEnabled &&
+                        state.status === "loaded" &&
+                        !state.data.needsManualInput &&
+                        state.data.currentPeriodCostUsd >= alert.thresholdUsd;
+                      return (
+                        <ServiceCard
+                          key={service}
+                          service={service}
+                          state={state}
+                          isOverBudget={!!isOverBudget}
+                          alertThreshold={alert?.isEnabled ? alert.thresholdUsd : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
