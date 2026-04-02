@@ -38,6 +38,21 @@ export async function POST(request: NextRequest) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    // 404 means the usage endpoint isn't available for this key type.
+    // Anthropic's usage API requires an Admin API key created in the
+    // Anthropic Console under Settings → API Keys (not a standard key).
+    if (res.status === 404) {
+      return NextResponse.json(
+        {
+          error: "NotFound",
+          message:
+            "Usage data not available for this API key. " +
+            "Anthropic requires an Admin API key for billing access — " +
+            "create one at console.anthropic.com → Settings → API Keys.",
+        },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
       { error: data.error?.type ?? "AnthropicError", message: data.error?.message ?? res.statusText },
       { status: res.status }
