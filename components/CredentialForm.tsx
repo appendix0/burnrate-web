@@ -40,6 +40,7 @@ const FIELDS: Record<ServiceType, FieldConfig[]> = {
       hint: "Cost Explorer is global but requires a region",
     },
   ],
+  [ServiceType.GoogleCloud]: [],
   [ServiceType.Oracle]: [
     {
       key: "tenancyOcid",
@@ -190,7 +191,7 @@ function AnthropicForm({
   );
 }
 
-const MANUAL_ENTRY_SERVICES = new Set([ServiceType.OpenAI, ServiceType.Gemini]);
+const MANUAL_ENTRY_SERVICES = new Set([ServiceType.OpenAI, ServiceType.Gemini, ServiceType.GoogleCloud]);
 
 const MANUAL_ENTRY_HINTS: Partial<Record<ServiceType, { body: string; dashboardLabel: string }>> = {
   [ServiceType.OpenAI]: {
@@ -200,6 +201,10 @@ const MANUAL_ENTRY_HINTS: Partial<Record<ServiceType, { body: string; dashboardL
   [ServiceType.Gemini]: {
     body: "Google does not expose billing data via API key.",
     dashboardLabel: "aistudio.google.com",
+  },
+  [ServiceType.GoogleCloud]: {
+    body: "Google Cloud billing data requires a BigQuery export setup and is not accessible via a simple API key.",
+    dashboardLabel: "console.cloud.google.com/billing",
   },
 };
 

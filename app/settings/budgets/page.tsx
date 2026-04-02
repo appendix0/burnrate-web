@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCredentialStore } from "@/lib/store/credentialStore";
 import { useAlertStore } from "@/lib/store/alertStore";
 import { ALL_SERVICES, SERVICE_METADATA, ServiceType } from "@/lib/constants/services";
+import { ServiceIcon } from "@/components/ServiceIcon";
 
 export default function BudgetsSettingsPage() {
   const router = useRouter();
@@ -109,13 +110,13 @@ export default function BudgetsSettingsPage() {
               >
                 {/* Avatar */}
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{
                     backgroundColor: meta.color + "22",
                     color: meta.color,
                   }}
                 >
-                  {meta.label[0]}
+                  <ServiceIcon service={service} className="w-5 h-5" />
                 </div>
 
                 {/* Name */}

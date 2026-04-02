@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ServiceType, SERVICE_METADATA } from "@/lib/constants/services";
+import { ServiceIcon } from "@/components/ServiceIcon";
 import { useCredentialStore } from "@/lib/store/credentialStore";
 import { CredentialForm } from "@/components/CredentialForm";
 import { Credential } from "@/lib/models/credential";
@@ -38,6 +39,8 @@ function buildCredential(
         privateKeyPem: values.privateKeyPem,
         region: values.region,
       };
+    case ServiceType.GoogleCloud:
+      return { type: ServiceType.GoogleCloud };
   }
 }
 
@@ -98,10 +101,10 @@ export function CredentialSetupClient() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ backgroundColor: meta.color + "22", color: meta.color }}
           >
-            {meta.label[0]}
+            <ServiceIcon service={service} className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-lg font-semibold">Connect {meta.label}</h1>

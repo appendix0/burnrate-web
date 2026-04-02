@@ -12,7 +12,7 @@ import { fetchOracleUsage } from "@/lib/sources/oracleSource";
 import { UsageSummary } from "@/lib/models/usageSummary";
 
 // Services that always use manual entry (no billing API available)
-const ALWAYS_MANUAL = new Set<ServiceType>([ServiceType.OpenAI, ServiceType.Gemini]);
+const ALWAYS_MANUAL = new Set<ServiceType>([ServiceType.OpenAI, ServiceType.Gemini, ServiceType.GoogleCloud]);
 
 function isManualCredential(credential: Credential): boolean {
   if (ALWAYS_MANUAL.has(credential.type)) return true;
@@ -32,6 +32,7 @@ function manualEntryToSummary(
     previousPeriodCostUsd: entry?.previousMonthSpend ?? 0,
     dailyRecords: [],
     fetchedAt: entry?.updatedAt ?? new Date().toISOString(),
+    needsManualInput: entry === undefined,
   };
 }
 

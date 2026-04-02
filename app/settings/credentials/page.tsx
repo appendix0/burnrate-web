@@ -13,7 +13,7 @@ const SERVICE_GROUPS = [
   },
   {
     label: "Cloud Services",
-    services: [ServiceType.AWS, ServiceType.Oracle],
+    services: [ServiceType.AWS, ServiceType.Oracle, ServiceType.GoogleCloud],
   },
 ];
 

@@ -33,9 +33,15 @@ export type OCICredential = {
   region: string;
 };
 
+export type GCPCredential = {
+  type: ServiceType.GoogleCloud;
+  // Manual entry — GCP billing API requires BigQuery export setup
+};
+
 export type Credential =
   | AnthropicCredential
   | OpenAICredential
   | GeminiCredential
   | AWSCredential
-  | OCICredential;
+  | OCICredential
+  | GCPCredential;

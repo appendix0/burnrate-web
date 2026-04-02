@@ -6,6 +6,7 @@ const ICON_PATHS: Record<ServiceType, string> = {
   [ServiceType.Gemini]: "/icons/gemini.svg",
   [ServiceType.AWS]: "/icons/aws.svg",
   [ServiceType.Oracle]: "/icons/oracle.svg",
+  [ServiceType.GoogleCloud]: "/icons/googlecloud.svg",
 };
 
 export function ServiceIcon({

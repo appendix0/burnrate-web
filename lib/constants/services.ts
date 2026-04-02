@@ -4,6 +4,7 @@ export enum ServiceType {
   Gemini = "gemini",
   AWS = "aws",
   Oracle = "oracle",
+  GoogleCloud = "googlecloud",
 }
 
 export const SERVICE_METADATA: Record<
@@ -34,6 +35,11 @@ export const SERVICE_METADATA: Record<
     label: "Oracle Cloud",
     color: "#ef4444",
     description: "OCI usage cost",
+  },
+  [ServiceType.GoogleCloud]: {
+    label: "Google Cloud",
+    color: "#4285f4",
+    description: "GCP infrastructure cost",
   },
 };
 

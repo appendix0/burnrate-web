@@ -7,4 +7,5 @@ export type UsageSummary = {
   previousPeriodCostUsd: number;
   dailyRecords: UsageRecord[];
   fetchedAt: string; // ISO datetime
+  needsManualInput?: boolean; // true when manual-entry service has no data yet
 };

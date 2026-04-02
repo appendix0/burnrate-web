@@ -175,7 +175,9 @@ function ServiceCard({
         <>
           <div className="text-2xl font-mono font-semibold">
             {state.status === "loaded"
-              ? formatUsd(state.data.currentPeriodCostUsd)
+              ? state.data.needsManualInput
+                ? <span className="text-base text-warning">Enter spend →</span>
+                : formatUsd(state.data.currentPeriodCostUsd)
               : state.status === "error"
               ? <span className="text-base text-danger">Error</span>
               : <span className="text-muted-foreground">—</span>}
