@@ -6,6 +6,8 @@ import { useUsageStore } from "@/lib/store/usageStore";
 import { useRefreshUsage } from "@/lib/hooks/useRefreshUsage";
 import { SpendChart } from "@/components/SpendChart";
 import { UsageSummary } from "@/lib/models/usageSummary";
+import { useAlertStore } from "@/lib/store/alertStore";
+import { timeAgo } from "@/lib/utils/timeAgo";
 
 function formatUsd(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -14,13 +16,6 @@ function formatUsd(amount: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function calcDailyAvg(summary: UsageSummary): number {
@@ -58,7 +53,15 @@ export default function ServiceDetailPage() {
   const state = useUsageStore((s) =>
     service ? s.services[service] : { status: "unconfigured" as const }
   );
+  const alert = useAlertStore((s) =>
+    service ? s.alerts.find((a) => a.serviceType === service) : undefined
+  );
   const { refresh } = useRefreshUsage();
+
+  const isOverBudget =
+    alert?.isEnabled &&
+    state.status === "loaded" &&
+    state.data.currentPeriodCostUsd >= alert.thresholdUsd;
 
   if (!service) {
     router.replace("/dashboard");
@@ -146,6 +149,20 @@ export default function ServiceDetailPage() {
           const peakDay = calcPeakDay(data);
           return (
             <>
+              {/* Over budget banner */}
+              {isOverBudget && alert && (
+                <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 mb-5 flex items-center gap-3">
+                  <span className="text-danger text-lg">⚠</span>
+                  <div>
+                    <p className="text-sm font-medium text-danger">Over budget</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatUsd(data.currentPeriodCostUsd)} spent ·{" "}
+                      {formatUsd(alert.thresholdUsd)} monthly limit
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                 <StatCard
@@ -182,7 +199,7 @@ export default function ServiceDetailPage() {
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm font-medium">Daily spend</p>
                   <p className="text-xs text-muted-foreground">
-                    Fetched at {formatTime(data.fetchedAt)}
+                    Updated {timeAgo(data.fetchedAt)}
                   </p>
                 </div>
                 <SpendChart
