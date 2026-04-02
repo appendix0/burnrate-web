@@ -4,22 +4,21 @@ import { UsageRecord } from "@/lib/models/usageRecord";
 import { ServiceType } from "@/lib/constants/services";
 import { getMTDRange, getPreviousMonthRange } from "@/lib/utils/dateRange";
 
-// ── Organization path — uses the Anthropic Admin API (requires an Admin API key) ──
+// Organization path only — requires an Admin API key.
+// Individual accounts are handled via manual entry in useRefreshUsage.
 
 type AnthropicUsageResponse = {
   data: Array<{
     timestamp: string;
     input_tokens: number;
     output_tokens: number;
-    cache_creation_input_tokens?: number;
-    cache_read_input_tokens?: number;
   }>;
 };
 
 const INPUT_COST_PER_M = 3.0;
 const OUTPUT_COST_PER_M = 15.0;
 
-async function fetchAdminRange(
+async function fetchRange(
   credential: AnthropicCredential,
   startDate: string,
   endDate: string
@@ -45,12 +44,14 @@ async function fetchAdminRange(
   });
 }
 
-async function fetchFromAdminApi(credential: AnthropicCredential): Promise<UsageSummary> {
+export async function fetchAnthropicUsage(
+  credential: AnthropicCredential
+): Promise<UsageSummary> {
   const { start: mtdStart, end: mtdEnd } = getMTDRange();
   const { start: prevStart, end: prevEnd } = getPreviousMonthRange();
   const [currentRecords, previousRecords] = await Promise.all([
-    fetchAdminRange(credential, mtdStart, mtdEnd),
-    fetchAdminRange(credential, prevStart, prevEnd),
+    fetchRange(credential, mtdStart, mtdEnd),
+    fetchRange(credential, prevStart, prevEnd),
   ]);
   return {
     serviceType: ServiceType.Anthropic,
@@ -59,45 +60,4 @@ async function fetchFromAdminApi(credential: AnthropicCredential): Promise<Usage
     dailyRecords: currentRecords,
     fetchedAt: new Date().toISOString(),
   };
-}
-
-// ── Individual path — reads from the local proxy usage store ──
-
-type ProxyUsageResponse = {
-  dailyRecords: Array<{ date: string; costUsd: number; tokens: number }>;
-  totalCostUsd: number;
-};
-
-async function fetchProxyRange(startDate: string, endDate: string): Promise<ProxyUsageResponse> {
-  const params = new URLSearchParams({ service: "anthropic", startDate, endDate });
-  const res = await fetch(`/api/proxy/usage?${params}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchFromProxy(): Promise<UsageSummary> {
-  const { start: mtdStart, end: mtdEnd } = getMTDRange();
-  const { start: prevStart, end: prevEnd } = getPreviousMonthRange();
-  const [current, previous] = await Promise.all([
-    fetchProxyRange(mtdStart, mtdEnd),
-    fetchProxyRange(prevStart, prevEnd),
-  ]);
-  return {
-    serviceType: ServiceType.Anthropic,
-    currentPeriodCostUsd: current.totalCostUsd,
-    previousPeriodCostUsd: previous.totalCostUsd,
-    dailyRecords: current.dailyRecords,
-    fetchedAt: new Date().toISOString(),
-  };
-}
-
-// ── Public entry point ────────────────────────────────────────────────────────
-
-export async function fetchAnthropicUsage(
-  credential: AnthropicCredential
-): Promise<UsageSummary> {
-  if (credential.accountType === "organization") {
-    return fetchFromAdminApi(credential);
-  }
-  return fetchFromProxy();
 }

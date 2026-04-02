@@ -19,13 +19,9 @@ function buildCredential(
         apiKey: values.apiKey || undefined,
       };
     case ServiceType.OpenAI:
-      return { type: ServiceType.OpenAI, apiKey: values.apiKey };
+      return { type: ServiceType.OpenAI };
     case ServiceType.Gemini:
-      return {
-        type: ServiceType.Gemini,
-        apiKey: values.apiKey,
-        projectId: values.projectId || undefined,
-      };
+      return { type: ServiceType.Gemini };
     case ServiceType.AWS:
       return {
         type: ServiceType.AWS,

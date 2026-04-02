@@ -15,33 +15,8 @@ type FieldConfig = {
 
 const FIELDS: Record<ServiceType, FieldConfig[]> = {
   [ServiceType.Anthropic]: [], // handled by AnthropicForm below
-  [ServiceType.OpenAI]: [
-    {
-      key: "apiKey",
-      label: "API Key",
-      placeholder: "sk-proj-...",
-      secret: true,
-      required: true,
-      hint: "Found at platform.openai.com → API Keys — used to identify this service",
-    },
-  ],
-  [ServiceType.Gemini]: [
-    {
-      key: "apiKey",
-      label: "API Key",
-      placeholder: "AIzaSy...",
-      secret: true,
-      required: true,
-      hint: "Found at aistudio.google.com → Get API Key",
-    },
-    {
-      key: "projectId",
-      label: "Project ID",
-      placeholder: "my-project-123",
-      required: false,
-      hint: "Optional — your Google Cloud project ID",
-    },
-  ],
+  [ServiceType.OpenAI]: [], // manual entry — no API key needed
+  [ServiceType.Gemini]: [],  // manual entry — no API key needed
   [ServiceType.AWS]: [
     {
       key: "accessKeyId",
@@ -215,6 +190,19 @@ function AnthropicForm({
   );
 }
 
+const MANUAL_ENTRY_SERVICES = new Set([ServiceType.OpenAI, ServiceType.Gemini]);
+
+const MANUAL_ENTRY_HINTS: Partial<Record<ServiceType, { body: string; dashboardLabel: string }>> = {
+  [ServiceType.OpenAI]: {
+    body: "OpenAI's billing API is deprecated for individual accounts.",
+    dashboardLabel: "platform.openai.com/usage",
+  },
+  [ServiceType.Gemini]: {
+    body: "Google does not expose billing data via API key.",
+    dashboardLabel: "aistudio.google.com",
+  },
+};
+
 // ── Generic form (OpenAI, Gemini, AWS, Oracle) ────────────────────────────────
 
 export function CredentialForm({
@@ -222,7 +210,7 @@ export function CredentialForm({
   onSubmit,
   isLoading = false,
 }: CredentialFormProps) {
-  // Hooks must always be called — FIELDS[Anthropic] is [] so values is {} there
+  // Hooks must always be called — FIELDS[Anthropic/OpenAI/Gemini] are [] so values is {} there
   const fields = FIELDS[service];
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.key, ""]))
@@ -230,6 +218,32 @@ export function CredentialForm({
 
   if (service === ServiceType.Anthropic) {
     return <AnthropicForm onSubmit={onSubmit} isLoading={isLoading} />;
+  }
+
+  // Manual-entry services — no fields, just a notice + confirm
+  if (MANUAL_ENTRY_SERVICES.has(service)) {
+    const hint = MANUAL_ENTRY_HINTS[service]!;
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="rounded-lg border border-border bg-muted/30 p-4 flex flex-col gap-2">
+          <p className="text-sm font-medium">Manual entry required</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{hint.body}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            After adding this service, you&apos;ll enter your spend on the detail page.
+            Check your actual usage at{" "}
+            <span className="font-mono">{hint.dashboardLabel}</span>.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => onSubmit({})}
+          className="py-2.5 rounded-lg bg-burn text-burn-foreground font-medium text-sm transition-opacity disabled:opacity-40"
+        >
+          {isLoading ? "Saving…" : "Add & Continue"}
+        </button>
+      </div>
+    );
   }
 
   const isValid = fields

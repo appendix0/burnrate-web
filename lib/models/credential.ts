@@ -9,13 +9,12 @@ export type AnthropicCredential = {
 
 export type OpenAICredential = {
   type: ServiceType.OpenAI;
-  apiKey: string;
+  // No API key needed — usage is entered manually
 };
 
 export type GeminiCredential = {
   type: ServiceType.Gemini;
-  apiKey: string;
-  projectId?: string;
+  // No API key needed — usage is entered manually
 };
 
 export type AWSCredential = {

@@ -10,11 +10,6 @@ const SETTINGS_SECTIONS = [
     description: "Add, edit, or remove API keys for each service",
   },
   {
-    href: "/settings/proxy",
-    title: "Proxy Setup",
-    description: "Route API calls through BurnRate to track Anthropic, OpenAI, and Gemini usage",
-  },
-  {
     href: "/settings/budgets",
     title: "Budget Alerts",
     description: "Set monthly spend thresholds and get notified",
