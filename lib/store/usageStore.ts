@@ -1,6 +1,7 @@
-// Phase 3 — Zustand store for per-service usage data
-// One slice per ServiceType, mirrors Riverpod usageSummaryProvider(ServiceType) family
-import { ServiceType } from "@/lib/constants/services";
+"use client";
+
+import { create } from "zustand";
+import { ServiceType, ALL_SERVICES } from "@/lib/constants/services";
 import { UsageSummary } from "@/lib/models/usageSummary";
 
 export type ServiceLoadState =
@@ -9,6 +10,42 @@ export type ServiceLoadState =
   | { status: "loaded"; data: UsageSummary }
   | { status: "error"; message: string };
 
-export type UsageState = Record<ServiceType, ServiceLoadState>;
+type UsageStoreState = {
+  services: Record<ServiceType, ServiceLoadState>;
+  setLoading: (service: ServiceType) => void;
+  setLoaded: (service: ServiceType, data: UsageSummary) => void;
+  setError: (service: ServiceType, message: string) => void;
+  setUnconfigured: (service: ServiceType) => void;
+  resetAll: () => void;
+};
 
-// Store implementation — Phase 3
+const initialServices = ALL_SERVICES.reduce(
+  (acc, s) => ({ ...acc, [s]: { status: "unconfigured" } }),
+  {} as Record<ServiceType, ServiceLoadState>
+);
+
+export const useUsageStore = create<UsageStoreState>()((set) => ({
+  services: initialServices,
+
+  setLoading: (service) =>
+    set((state) => ({
+      services: { ...state.services, [service]: { status: "loading" } },
+    })),
+
+  setLoaded: (service, data) =>
+    set((state) => ({
+      services: { ...state.services, [service]: { status: "loaded", data } },
+    })),
+
+  setError: (service, message) =>
+    set((state) => ({
+      services: { ...state.services, [service]: { status: "error", message } },
+    })),
+
+  setUnconfigured: (service) =>
+    set((state) => ({
+      services: { ...state.services, [service]: { status: "unconfigured" } },
+    })),
+
+  resetAll: () => set({ services: initialServices }),
+}));

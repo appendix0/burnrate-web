@@ -1,7 +1,17 @@
-// Phase 3 — hook to fetch + cache usage per service
-import { ServiceType } from "@/lib/constants/services";
+"use client";
 
-export function useUsage(_service: ServiceType) {
-  // Phase 3 implementation
-  return { status: "unconfigured" as const };
+import { ServiceType } from "@/lib/constants/services";
+import { useUsageStore, ServiceLoadState } from "@/lib/store/usageStore";
+
+export function useUsage(service: ServiceType): ServiceLoadState {
+  return useUsageStore((state) => state.services[service]);
+}
+
+export function useTotalSpend(): number {
+  return useUsageStore((state) =>
+    Object.values(state.services).reduce((sum, s) => {
+      if (s.status === "loaded") return sum + s.data.currentPeriodCostUsd;
+      return sum;
+    }, 0)
+  );
 }
